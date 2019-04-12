@@ -1,6 +1,8 @@
 import os
 import pickle
 import random
+from copy import copy
+
 from pyfasttext import FastText
 
 import nltk
@@ -23,16 +25,17 @@ class SentenceDataLoader(object):
         self.reserve_embed = reserve_embed
 
 
-    def load_models(self):
-        words_dict_path = os.path.join(self.model_location, "words_dict.p")
+    def load_models(self, words=None, iwords=None):
+        if words is None or iwords is None:
+            words_dict_path = os.path.join(self.model_location, "words_dict.p")
 
-        #Check file exists and load it
-        assert os.path.exists(words_dict_path), "Words Dictionary File is Missing"
-        with open(words_dict_path, "rb") as f:
-            self.word_dict = pickle.load(f)
-
-        # Make inverse dictionary
-        self.iword_dict = self.inverse_word_dict(self.word_dict)
+            #Check file exists and load it
+            assert os.path.exists(words_dict_path), "Words Dictionary File is Missing"
+            with open(words_dict_path, "rb") as f:
+                self.word_dict = pickle.load(f)
+        else:
+            self.word_dict = copy(words)
+            self.iword_dict = copy(iwords)
 
         # Add padding token
         _PAD_ = len(self.word_dict)

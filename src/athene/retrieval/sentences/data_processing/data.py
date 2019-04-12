@@ -10,14 +10,22 @@ from tqdm import tqdm
 from common.dataset.reader import JSONLineReader
 from retrieval.fever_doc_db import FeverDocDB
 
+def processed_line(method, line):
+    nps, wiki_results, pages = method.exact_match(line)
+    line['noun_phrases'] = nps
+    line['predicted_pages'] = pages
+    line['wiki_results'] = wiki_results
+    return line
+
+
 
 class Data(object):
 
-    def __init__(self, embedding_path, train_file, dev_file, test_file, fasttext_path, num_negatives, h_max_length,
-                 s_max_length, random_seed, reserve_embed=False, db_filepath="data/fever/fever.db"):
+    def __init__(self,  embedding_path, train_file, dev_file, test_file, fasttext_path, num_negatives, h_max_length,
+                 s_max_length, random_seed, reserve_embed=False, db_filepath="data/fever/fever.db", load_instances=True, retrieval=None):
 
         self.random_seed = random_seed
-
+        self.retrieval = retrieval
         self.embedding_path = embedding_path
         self.train_file = train_file
         self.dev_file = dev_file
@@ -29,6 +37,7 @@ class Data(object):
         self.db_filepath = db_filepath
         self.db = FeverDocDB(self.db_filepath)
         self.reserve_embed = reserve_embed
+        self.load_instances=  load_instances
 
         self.data_pipeline()
 
@@ -61,19 +70,20 @@ class Data(object):
 
         self.iword_dict = self.inverse_word_dict(self.word_dict)
 
-        train_indexes_path = os.path.join(self.embedding_path, "train_indexes.p")
-        self.X_train_indexes = self.train_indexes_loader(train_indexes_path, X_train)
-        dev_indexes_path = os.path.join(self.embedding_path, "dev_indexes.p")
-        self.dev_indexes = self.predict_indexes_loader(dev_indexes_path, devs)
-        test_indexes_path = os.path.join(self.embedding_path, "test_indexes.p")
-        self.test_indexes = self.predict_indexes_loader(test_indexes_path, tests)
+        if not self.load_instances:
+            train_indexes_path = os.path.join(self.embedding_path, "train_indexes.p")
+            self.X_train_indexes = self.train_indexes_loader(train_indexes_path, X_train)
+            dev_indexes_path = os.path.join(self.embedding_path, "dev_indexes.p")
+            self.dev_indexes = self.predict_indexes_loader(dev_indexes_path, devs)
+            test_indexes_path = os.path.join(self.embedding_path, "test_indexes.p")
+            self.test_indexes = self.predict_indexes_loader(test_indexes_path, tests)
 
-        embed_dict = self.load_fasttext(self.iword_dict)
-        print("embed_dict size {}".format(len(embed_dict)))
-        _PAD_ = len(self.word_dict)
-        self.word_dict[_PAD_] = '[PAD]'
-        self.iword_dict['[PAD]'] = _PAD_
-        self.embed = self.embed_to_numpy(embed_dict)
+            embed_dict = self.load_fasttext(self.iword_dict)
+            print("embed_dict size {}".format(len(embed_dict)))
+            _PAD_ = len(self.word_dict)
+            self.word_dict[_PAD_] = '[PAD]'
+            self.iword_dict['[PAD]'] = _PAD_
+            self.embed = self.embed_to_numpy(embed_dict)
 
         return self
 
@@ -107,6 +117,8 @@ class Data(object):
             lines = jlr.process(f)
 
             for line in tqdm(lines):
+                if not "predicted_page" in line:
+                    line = processed_line(self.retrieval, line)
                 count += 1
                 pos_pairs = []
                 # count1 += 1

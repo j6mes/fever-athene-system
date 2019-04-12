@@ -34,6 +34,23 @@ class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
+def get_iwords(prog_args, retrieval):
+    random.seed(prog_args.random_seed)
+
+    args = Config.sentence_retrieval_ensemble_param
+    print(vars(prog_args))
+    print(prog_args)
+    args.update(vars(prog_args))
+    print(args)
+
+    args = Struct(**args)
+    data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
+                num_negatives=args.num_negatives, h_max_length=args.c_max_length, s_max_length=args.s_max_length,
+                random_seed=args.random_seed, reserve_embed=args.reserve_embed, db_filepath=args.db_path, load_instances=False, retrieval=retrieval)
+
+    return data.word_dict, data.iword_dict
+
+
 
 def setup():
     # Set seeds
@@ -43,9 +60,11 @@ def setup():
     # Document Retrieval
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
+
     # Sentence Selection
+    words, iwords = get_iwords(args, retrieval)
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
-    sentence_loader.load_models()
+    sentence_loader.load_models(words,iwords)
 
     selection = SentenceESIM(h_max_length=args.c_max_length, s_max_length=args.s_max_length, learning_rate=args.learning_rate,
                        batch_size=args.batch_size, num_epoch=args.num_epoch, model_store_dir=args.sentence_model,

@@ -221,7 +221,7 @@ def training_phase(path, data, args):
         predictions, scores = post_processing_4_train(clf, data.test_indexes, data.test_location_indexes)
         final_predictions = prediction_processing(args.dev_data, predictions)
         # show_predictions(db_filename,final_predictions)
-        write_path = os.path.join(path, "models/sentence/dev.esim.wiki7.exact.s5.model{}.jsonl".format(i + 1))
+        write_path = os.path.join(path, "data/fever/dev.esim.wiki7.exact.s5.model{}.jsonl".format(i + 1))
         write_predictions(final_predictions, write_path)
 
         strict_score, label_accuracy, precision, recall, f1, doc_recall = fever_score(final_predictions,
