@@ -48,6 +48,8 @@ def setup():
     np.random.seed(args.random_seed)
     random.seed(args.random_seed)
 
+    train_ss_module(args)
+
     # Document Retrieval
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
