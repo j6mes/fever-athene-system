@@ -169,9 +169,9 @@ class Data(object):
             lines = jlr.process(f)
 
             with ThreadPool(processes=20) as p:
-                X = p.imap(lambda x: self.handle(x, num_sample), tqdm(lines))
+                X = p.imap(lambda x: self.handle(x, num_sample), lines)
 
-        found = list(filter(lambda x: x is not None, X))
+        found = list(tqdm(filter(lambda x: x is not None, X)))
         ret = []
         for i in found:
             ret.extend(i)
