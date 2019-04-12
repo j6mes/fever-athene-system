@@ -1,6 +1,8 @@
 import os
 import pickle
 import random
+from multiprocessing.pool import ThreadPool
+
 from pyfasttext import FastText
 
 import nltk
@@ -112,62 +114,68 @@ class Data(object):
         doc_lines = list(zip(doc_lines, [page] * len(doc_lines), range(len(doc_lines))))
         return doc_lines
 
+    def handle(self,line,num_sample):
+        ret = []
+        if not "predicted_page" in line:
+            line = processed_line(self.retrieval, line)
+        pos_pairs = []
+        # count1 += 1
+        if line['label'].upper() == "NOT ENOUGH INFO":
+            return []
+        neg_sents = []
+        claim = line['claim']
+
+        pos_set = set()
+        for evidence_set in line['evidence']:
+            pos_sent = self.get_whole_evidence(evidence_set, self.db)
+            if pos_sent in pos_set:
+                continue
+            pos_set.add(pos_sent)
+
+        p_lines = []
+        evidence_set = set(
+            [(evidence[2], evidence[3]) for evidences in line['evidence'] for evidence in evidences])
+
+        pages = [page for page in line['predicted_pages'] if page is not None]
+
+        for page in pages:
+            doc_lines = self.db.get_doc_lines(page)
+            p_lines.extend(self.get_valid_texts(doc_lines, page))
+        for doc_line in p_lines:
+            if (doc_line[1], doc_line[2]) not in evidence_set:
+                neg_sents.append(doc_line[0])
+
+        num_sampling = num_sample
+        if len(neg_sents) < num_sampling:
+            num_sampling = len(neg_sents)
+            # print(neg_sents)
+        if num_sampling == 0:
+            return []
+        else:
+            for pos_sent in pos_set:
+                samples = random.sample(neg_sents, num_sampling)
+                for sample in samples:
+                    if not sample:
+                        continue
+                    ret.append((claim, pos_sent, sample))
+                    # if count % 1000 == 0:
+                    #     print("claim:{} ,evidence :{} sample:{}".format(claim, pos_sent, sample))
+        return ret
     def sampling(self, datapath, num_sample=1):
 
         jlr = JSONLineReader()
 
-        X = []
-        count = 0
         with open(datapath, "r") as f:
             lines = jlr.process(f)
 
-            for line in tqdm(lines):
-                if not "predicted_page" in line:
-                    line = processed_line(self.retrieval, line)
-                count += 1
-                pos_pairs = []
-                # count1 += 1
-                if line['label'].upper() == "NOT ENOUGH INFO":
-                    continue
-                neg_sents = []
-                claim = line['claim']
+            with ThreadPool(processes=20) as p:
+                X = p.imap(lambda x: self.handle(x, num_sample), tqdm(lines))
 
-                pos_set = set()
-                for evidence_set in line['evidence']:
-                    pos_sent = self.get_whole_evidence(evidence_set, self.db)
-                    if pos_sent in pos_set:
-                        continue
-                    pos_set.add(pos_sent)
-
-                p_lines = []
-                evidence_set = set(
-                    [(evidence[2], evidence[3]) for evidences in line['evidence'] for evidence in evidences])
-
-                pages = [page for page in line['predicted_pages'] if page is not None]
-
-                for page in pages:
-                    doc_lines = self.db.get_doc_lines(page)
-                    p_lines.extend(self.get_valid_texts(doc_lines, page))
-                for doc_line in p_lines:
-                    if (doc_line[1], doc_line[2]) not in evidence_set:
-                        neg_sents.append(doc_line[0])
-
-                num_sampling = num_sample
-                if len(neg_sents) < num_sampling:
-                    num_sampling = len(neg_sents)
-                    # print(neg_sents)
-                if num_sampling == 0:
-                    continue
-                else:
-                    for pos_sent in pos_set:
-                        samples = random.sample(neg_sents, num_sampling)
-                        for sample in samples:
-                            if not sample:
-                                continue
-                            X.append((claim, pos_sent, sample))
-                            # if count % 1000 == 0:
-                            #     print("claim:{} ,evidence :{} sample:{}".format(claim, pos_sent, sample))
-        return X
+        found = list(filter(lambda x: x is not None, X))
+        ret = []
+        for i in found:
+            ret.extend(i)
+        return ret
 
     def predict_processing(self, datapath):
 
