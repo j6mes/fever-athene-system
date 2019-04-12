@@ -144,16 +144,29 @@ def prediction_processing(dataset_path, predictions):
 
     with open(dataset_path, "r") as f:
         lines = jsr.process(f)
-        #
-        # lines = lines[:100]
+        prediction_processing_no_reload(lines, predictions)
 
-        for idx, line in enumerate(lines):
-            if len(line['predicted_pages']) == 0:
-                line['predicted_evidence'] = []
-            else:
-                line['predicted_evidence'] = [[prediction[0], int(prediction[1])] for prediction in predictions[idx]]
-            line['predicted_label'] = "REFUTES"
-            final_predictions.append(line)
+    return final_predictions
+
+
+
+
+def prediction_processing_no_reload(lines, predictions):
+    """
+    process the predicted (doc_id,sent_id) pairs to the score system desired format
+    :param dataset_path:
+    :param predictions:
+    :return:
+    """
+
+    final_predictions = []
+    for idx, line in enumerate(lines):
+        if len(line['predicted_pages']) == 0:
+            line['predicted_evidence'] = []
+        else:
+            line['predicted_evidence'] = [[prediction[0], int(prediction[1])] for prediction in predictions[idx]]
+        line['predicted_label'] = "REFUTES"
+        final_predictions.append(line)
 
     return final_predictions
 
