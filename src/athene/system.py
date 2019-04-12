@@ -35,13 +35,11 @@ class Struct:
         self.__dict__.update(entries)
 
 def get_iwords(prog_args, retrieval):
+    print("Getting iwords")
     random.seed(prog_args.random_seed)
 
     args = Config.sentence_retrieval_ensemble_param
-    print(vars(prog_args))
-    print(prog_args)
     args.update(vars(prog_args))
-    print(args)
 
     args = Struct(**args)
     data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,

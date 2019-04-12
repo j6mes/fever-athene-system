@@ -51,13 +51,18 @@ class Data(object):
         # self.absou_dir = os.path.join(base_dir, store_dir)
         os.makedirs(self.embedding_path, exist_ok=True)
 
+        print("getting training data pages")
         train_data_path = os.path.join(self.embedding_path, "train_sample.p")
         X_train = self.train_data_loader(train_data_path, self.train_file, num_samples=self.num_negatives)
         dev_datapath = os.path.join(self.embedding_path, "dev_data.p")
+
+        print("getting dev data pages")
         devs, self.dev_labels = self.dev_data_loader(dev_datapath, self.dev_file)
         if self.test_file is None:
             self.test_file = self.dev_file
 
+
+        print("getting test data pages")
         test_datapath = os.path.join(self.embedding_path, "test_data.p")
         tests, self.test_location_indexes = self.predict_data_loader(test_datapath, self.test_file)
 
@@ -412,6 +417,7 @@ class Data(object):
         return devs_indexes
 
     def get_complete_words(self, words_dict_path, train_data, dev_data, test_data):
+        print("getting complete words")
 
         all_words = set()
         train_words = self.get_train_words(train_data)
