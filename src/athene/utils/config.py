@@ -31,19 +31,18 @@ class Config:
         # os.makedirs(cls.sentence_retrieval_embedding_folder, exist_ok=True)
         os.makedirs(cls.sentence_retrieval_ensemble_param['model_path'], exist_ok=True)
 
-    BASE_DIR = os.getcwd()
     SUBMISSION_FILE_NAME = "predictions.jsonl"
     model_name = "esim_0"
-    glove_path = path.join(BASE_DIR, "data/glove/glove.6B.300d.txt.gz")
-    fasttext_path = path.join(BASE_DIR, "data/fasttext/wiki.en.bin")
+    glove_path = "data/glove/glove.6B.300d.txt.gz"
+    fasttext_path = "data/fasttext/wiki.en.bin"
     # fasttext_path = path.join(BASE_DIR, "data/fasttext/fasttext.p")
-    model_folder = path.join(BASE_DIR, "model/%s" % model_name)
+    model_folder = "model/%s" % model_name
     ckpt_folder = path.join(model_folder, 'rte_checkpoints')
-    db_path = path.join(BASE_DIR, "data/fever/fever.db")
-    dataset_folder = path.join(BASE_DIR, "data/fever")
-    raw_training_set = path.join(BASE_DIR, "data/fever-data/train.jsonl")
-    raw_dev_set = path.join(BASE_DIR, "data/fever-data/dev.jsonl")
-    raw_test_set = path.join(BASE_DIR, "data/fever-data/test.jsonl")
+    db_path =  "/local/fever-common/data/fever/fever.db"
+    dataset_folder = "data/fever"
+    raw_training_set = "/local/fever-common/data/fever-data/train.jsonl"
+    raw_dev_set = "/local/fever-common/data/fever-data/dev.jsonl"
+    raw_test_set = "/local/fever-common/data/fever-data/test.jsonl"
     training_doc_file = path.join(dataset_folder, "train.wiki7.jsonl")
     dev_doc_file = path.join(dataset_folder, "dev.wiki7.jsonl")
     test_doc_file = path.join(dataset_folder, "test.wiki7.jsonl")
@@ -56,7 +55,7 @@ class Config:
     # sentence_retrieval_model_name = "esim"
     # sentence_retrieval_model_folder = path.join(model_folder, "sentence_retrieval")
     # sentence_retrieval_embedding_folder = path.join(dataset_folder, "sentence_retrieval_embedding")
-    submission_folder = path.join(BASE_DIR, "data/submission")
+    submission_folder = path.join("data/submission")
     submission_file = path.join(submission_folder, SUBMISSION_FILE_NAME)
     estimator_name = "esim"
     pickle_name = estimator_name + ".p"

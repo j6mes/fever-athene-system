@@ -34,21 +34,11 @@ class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
-def train_ss_module(args):
-    random.seed(args.random_seed)
-
-    data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
-                num_negatives=args.num_negatives, h_max_length=args.c_max_length, s_max_length=args.s_max_length,
-                random_seed=args.random_seed, reserve_embed=args.reserve_embed, db_filepath=args.db_path)
-    training_phase(args.sentence_model, data, args)
-
 
 def setup():
     # Set seeds
     np.random.seed(args.random_seed)
     random.seed(args.random_seed)
-
-    train_ss_module(args)
 
     # Document Retrieval
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
