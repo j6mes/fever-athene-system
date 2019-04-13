@@ -100,7 +100,7 @@ def setup():
     # RTE
     logger.info("Setup RTE")
     rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
-    rte_predictor.restore_model(rte_predictor.ckpt_path)
+    #rte_predictor.restore_model(rte_predictor.ckpt_path)
     logger.info("Load GloVe")
     vocab, embeddings = load_whole_glove(Config.glove_path)
     logger.info("Map Vocab")
