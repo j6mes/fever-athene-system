@@ -155,9 +155,13 @@ class ESIM:
             embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
             embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
 
-
-        h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
-        s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
+        if self.share_rnn:
+            with tf.variable_scope("encode_rnn", reuse=tf.AUTO_REUSE):
+                h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units)
+                s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units)
+        else:
+            h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
+            s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
 
         sent_attends, claim_attends = self._inter_atten(h_encodings, s_encodings, X_h_length, X_s_length)
 
@@ -170,9 +174,13 @@ class ESIM:
         m_claim = tf.concat([h_encodings, claim_attends, claim_diff, claim_mul], axis=2)
         m_sent = tf.concat([s_encodings, sent_attends, sent_diff, sent_mul], axis=2)
 
-
-        h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
-        s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
+        if self.share_rnn:
+            with tf.variable_scope("infer_rnn", reuse=tf.AUTO_REUSE):
+                h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units)
+                s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units)
+        else:
+            h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
+            s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
 
         claim_sum = tf.reduce_sum(h_infer, axis=1)
         claim_mask = tf.cast(tf.sequence_mask(X_h_length), tf.float32)
@@ -201,7 +209,7 @@ class ESIM:
 
         init = tf.global_variables_initializer()
         saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
-        print("\n".join([str(el) for el in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]))
+        # print("\n".join([str(el) for el in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]))
 
         # if self.tensorboard_logdir:
         #     now = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
@@ -427,8 +435,9 @@ class ESIM:
         config.gpu_options.allow_growth = True
         config.gpu_options.per_process_gpu_memory_fraction = 0.5
         self._session = tf.Session(config=config)
-        v = tf.get_variable("word_embeddings")
-        self._session.run(v.initializer)
+        with tf.variable_scope("embedding_lookup", reuse=True):
+            v = tf.get_variable("word_embeddings")
+            self._session.run(v.initializer)
         self._saver.restore(self._session, path)
         return self
 
