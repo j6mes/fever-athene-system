@@ -155,13 +155,9 @@ class ESIM:
             embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
             embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
 
-        if self.share_rnn:
-            with tf.variable_scope("encode_rnn", reuse=tf.AUTO_REUSE):
-                h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units)
-                s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units)
-        else:
-            h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
-            s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
+
+        h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
+        s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
 
         sent_attends, claim_attends = self._inter_atten(h_encodings, s_encodings, X_h_length, X_s_length)
 
@@ -174,13 +170,9 @@ class ESIM:
         m_claim = tf.concat([h_encodings, claim_attends, claim_diff, claim_mul], axis=2)
         m_sent = tf.concat([s_encodings, sent_attends, sent_diff, sent_mul], axis=2)
 
-        if self.share_rnn:
-            with tf.variable_scope("infer_rnn", reuse=tf.AUTO_REUSE):
-                h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units)
-                s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units)
-        else:
-            h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
-            s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
+
+        h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
+        s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
 
         claim_sum = tf.reduce_sum(h_infer, axis=1)
         claim_mask = tf.cast(tf.sequence_mask(X_h_length), tf.float32)
