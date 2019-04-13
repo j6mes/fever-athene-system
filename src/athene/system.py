@@ -84,17 +84,17 @@ def setup():
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
-    selections = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+    selection = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)] * sargs.num_model
+                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)
 
-    for i in range(sargs.num_model):
-        logger.info("Restore Model {}".format(i))
-        model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-        if not os.path.exists(model_store_path):
-            raise Exception("model must be trained before testing")
-        selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+    #for i in range(sargs.num_model):
+    #    logger.info("Restore Model {}".format(i))
+    #    model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+    #    if not os.path.exists(model_store_path):
+    #        raise Exception("model must be trained before testing")
+    #    selections.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
     # RTE
@@ -125,8 +125,16 @@ def setup():
         for i in range(sargs.num_model):
             predictions = []
 
+            logger.info("Restore Model {}".format(i))
+            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+
+            if not os.path.exists(model_store_path):
+                raise Exception("model must be trained before testing")
+
+            selection.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+
             for test_index in indexes:
-                prediction = selections[i].predict(test_index)
+                prediction = selection.predict(test_index)
                 predictions.append(prediction)
 
             all_predictions.append(predictions)
