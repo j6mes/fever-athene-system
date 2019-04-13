@@ -91,7 +91,7 @@ def setup():
         indexes, location_indexes = sentence_loader.get_indexes(lines)
         all_predictions = []
 
-        for i in range(args.num_model):
+        for i in range(sargs.num_model):
             model_store_path = os.path.join(args.model_path, "model{}".format(i + 1))
             if not os.path.exists(model_store_path):
                 raise Exception("model must be trained before testing")
