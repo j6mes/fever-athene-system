@@ -12,7 +12,7 @@ from athene.retrieval.sentences.deep_models.ESIM import ESIM as SentenceESIM
 from athene.retrieval.sentences.ensemble import scores_processing, post_processing, prediction_processing, \
     prediction_processing_no_reload, training_phase
 from athene.retrieval.sentences.ensemble import entrance as sentence_retrieval_ensemble_entrance
-from athene.rte.utils.data_reader import embed_data_set_with_glove_and_fasttext, embed_claims
+from athene.rte.utils.data_reader import embed_data_set_with_glove_and_fasttext, embed_claims, prediction_2_label
 from athene.rte.utils.estimator_definitions import get_estimator
 from athene.rte.utils.text_processing import load_whole_glove, vocab_map
 from athene.utils.config import Config
@@ -172,12 +172,20 @@ def setup():
     def process_claim(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
-        print(claims)
-        claims = run_rte(claims)
-        print(claims)
-        return claims
+        predictions = run_rte(claims)
 
-    return process_claim([{"claim":"This is a test"}])
+        ret = []
+
+        for idx in range(len(claims)):
+            claim = claims[idx]
+            prediction = predictions[idx]
+
+            return_line = {"predicted_label": prediction_2_label(prediction), "predicted_evidence": claim["predicted_evidence"] }
+            ret.append(return_line)
+        return ret
+
+    print(process_claim([{"claim":"This is a test"}]))
+    print(process_claim([{"claim":"This is a test 2"}]))
 
 
 setup()
