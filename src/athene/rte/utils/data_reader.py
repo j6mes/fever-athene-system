@@ -176,7 +176,7 @@ def read_data_set_from_lines(lines: List, db: Union[str, FeverDocDB], predicted:
     evidences = []
     paths = []
     labels = []
-    ids = []
+
     for line in tqdm(lines):
         json_obj = line
         if predicted:
@@ -219,8 +219,8 @@ def read_data_set_from_lines(lines: List, db: Union[str, FeverDocDB], predicted:
             if num_sentences is not None and num_sentences > len(paths_from_sent_to_claim):
                 paths_from_sent_to_claim += [0.0] * (num_sentences - len(paths_from_sent_to_claim))
             paths.append(paths_from_sent_to_claim)
-        ids.append(json_obj['id'])
-    datas = {'h': claims, 'b': evidences, 'id': ids}
+
+    datas = {'h': claims, 'b': evidences}
     if paths:
         datas['paths'] = paths
     return datas, labels
