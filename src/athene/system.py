@@ -69,7 +69,7 @@ def setup():
     sentence_loader.load_models(words,iwords)
 
     sargs = Config.sentence_retrieval_ensemble_param
-    sargs.update(args)
+    sargs.update(vars(args))
     sargs = Struct(**sargs)
     selection = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
