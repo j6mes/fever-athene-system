@@ -4,6 +4,7 @@ from math import ceil
 import numpy as np
 import tensorflow as tf
 from sklearn.base import BaseEstimator, ClassifierMixin
+from tqdm import tqdm
 
 from common.util.log_helper import LogHelper
 
@@ -604,7 +605,7 @@ class ESIM(BaseEstimator, ClassifierMixin):
         probabilities = []
         # with self._session.as_default():
         for (pred_h_batch, pred_b_batch, pred_h_sizes_batch, pred_b_sizes_batch, pred_h_sent_sizes_batch,
-             pred_b_sent_sizes_batch) in batches:
+             pred_b_sent_sizes_batch) in tqdm(batches):
             # predictions_batch = self._probabilities.eval(
             predictions_batch, attention_matrix, softmax_matrix_head, softmax_matrix_body = self._session.run(
                 [self._probabilities, self.attention_matrix, self.softmax_matrix_head, self.softmax_matrix_body],

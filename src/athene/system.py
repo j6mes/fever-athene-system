@@ -84,15 +84,23 @@ def setup():
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
-    selection = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+    selections = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)
+                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)] * range(sargs.num_model)
+
+    for i in range(sargs.num_model):
+        logger.info("Restore Model {}".format(i))
+        model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+        if not os.path.exists(model_store_path):
+            raise Exception("model must be trained before testing")
+        selections.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
     # RTE
     logger.info("Setup RTE")
-    estimator = get_estimator(Config.estimator_name, Config.ckpt_folder)
+    rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
+    rte_predictor.restore_model(rte_predictor.ckpt_path)
     logger.info("Load GloVe")
     vocab, embeddings = load_whole_glove(Config.glove_path)
     logger.info("Map Vocab")
@@ -115,15 +123,10 @@ def setup():
         all_predictions = []
 
         for i in range(sargs.num_model):
-            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-            if not os.path.exists(model_store_path):
-                raise Exception("model must be trained before testing")
-
-            selection.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
             predictions = []
 
             for test_index in indexes:
-                prediction = selection.predict(test_index)
+                prediction = selections[i].predict(test_index)
                 predictions.append(prediction)
 
             all_predictions.append(predictions)
@@ -155,7 +158,7 @@ def setup():
             'embedding': embeddings
         }
 
-        predictions = estimator.predict(x_dict, True) #TODO try with False
+        predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         print(predictions)
 
     def process_claim(claims):
