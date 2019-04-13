@@ -159,13 +159,14 @@ def setup():
         }
 
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
-        print(predictions)
+        return predictions
 
     def process_claim(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
+        print(claims)
         claims = run_rte(claims)
-        print()
+        print(claims)
         return claims
 
     return process_claim([{"claim":"This is a test"}])
