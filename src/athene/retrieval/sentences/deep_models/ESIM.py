@@ -427,9 +427,8 @@ class ESIM:
         config.gpu_options.allow_growth = True
         config.gpu_options.per_process_gpu_memory_fraction = 0.5
         self._session = tf.Session(config=config)
-        with tf.variable_scope("embedding_lookup", reuse=False):
-            v = tf.get_variable("word_embeddings")
-            self._session.run(v.initializer)
+        v = tf.get_variable("word_embeddings")
+        self._session.run(v.initializer)
         self._saver.restore(self._session, path)
         return self
 
