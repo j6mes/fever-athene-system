@@ -84,10 +84,10 @@ def setup():
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
-    selection = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+    selection_models = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)
+                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh)]*sargs.num_models
 
     #for i in range(sargs.num_model):
     #    logger.info("Restore Model {}".format(i))
@@ -100,13 +100,30 @@ def setup():
     # RTE
     logger.info("Setup RTE")
     rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
-    #rte_predictor.restore_model(rte_predictor.ckpt_path)
+
     logger.info("Load GloVe")
     vocab, embeddings = load_whole_glove(Config.glove_path)
     logger.info("Map Vocab")
     vocab = vocab_map(vocab)
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
+
+    # Load
+    logger.info("Setup models")
+    logger.info("Load sentence models")
+    for i,model in enumerate(selection_models):
+        logger.info("Restore sentence model {}".format(i))
+        model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+
+        if not os.path.exists(model_store_path):
+            raise Exception("model must be trained before testing")
+
+        model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+
+    logger.info("Restore RTE model")
+    rte_predictor.restore_model(rte_predictor.ckpt_path)
+
+
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
@@ -125,16 +142,8 @@ def setup():
         for i in range(sargs.num_model):
             predictions = []
 
-            logger.info("Restore Model {}".format(i))
-            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-
-            if not os.path.exists(model_store_path):
-                raise Exception("model must be trained before testing")
-
-            selection.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
-
             for test_index in indexes:
-                prediction = selection.predict(test_index)
+                prediction = selection_models[i].predict(test_index)
                 predictions.append(prediction)
 
             all_predictions.append(predictions)
@@ -169,13 +178,12 @@ def setup():
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         return predictions
 
-    def process_claim(claims):
+    def process_claims(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
         predictions = run_rte(claims)
 
         ret = []
-
         for idx in range(len(claims)):
             claim = claims[idx]
             prediction = predictions[idx]
@@ -184,8 +192,7 @@ def setup():
             ret.append(return_line)
         return ret
 
-    print(process_claim([{"claim":"This is a test"}]))
-    print(process_claim([{"claim":"This is a test 2"}]))
+    print(process_claims([{"claim":"This is a test"}]))
 
 
 setup()
