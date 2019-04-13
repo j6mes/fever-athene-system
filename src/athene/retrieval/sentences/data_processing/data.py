@@ -39,7 +39,7 @@ class Data(object):
         self.db_filepath = db_filepath
         self.db = FeverDocDB(self.db_filepath)
         self.reserve_embed = reserve_embed
-        self.load_instances=  load_instances
+        self.load_instances = load_instances
 
         self.data_pipeline()
 
@@ -77,7 +77,7 @@ class Data(object):
 
         self.iword_dict = self.inverse_word_dict(self.word_dict)
 
-        if not self.load_instances:
+        if self.load_instances:
             train_indexes_path = os.path.join(self.embedding_path, "train_indexes.p")
             self.X_train_indexes = self.train_indexes_loader(train_indexes_path, X_train)
             dev_indexes_path = os.path.join(self.embedding_path, "dev_indexes.p")
@@ -116,7 +116,8 @@ class Data(object):
 
     def handle(self,line,num_sample):
         ret = []
-        if not "predicted_page" in line:
+        print(line)
+        if not "predicted_pages" in line:
             line = processed_line(self.retrieval, line)
         pos_pairs = []
         # count1 += 1
@@ -164,17 +165,18 @@ class Data(object):
     def sampling(self, datapath, num_sample=1):
 
         jlr = JSONLineReader()
-
+        ret = []
+        print("sampling for "+ datapath)
         with open(datapath, "r") as f:
             lines = jlr.process(f)
+            print(len(lines))
+            with ThreadPool(processes=48) as p:
+                for line in tqdm(p.imap(lambda x: self.handle(x, num_sample), lines),total=len(lines)):
+                    if line is not None:
+                        ret.extend(line)
 
-            with ThreadPool(processes=20) as p:
-                X = p.imap(lambda x: self.handle(x, num_sample), lines)
+        print("Done")
 
-        found = list(tqdm(filter(lambda x: x is not None, X)))
-        ret = []
-        for i in found:
-            ret.extend(i)
         return ret
 
     def predict_processing(self, datapath):
@@ -399,7 +401,7 @@ class Data(object):
     def train_data_indexes(self, X, word_dict):
 
         X_indexes = []
-        print("start index words into intergers")
+        print("start index words into integers")
         for claim, pos, neg in X:
             claim_indexes = self.sent_2_index(claim, word_dict, self.h_max_length)
             pos_indexes = self.sent_2_index(pos, word_dict, self.s_max_length)

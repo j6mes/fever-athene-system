@@ -21,14 +21,14 @@ parser.add_argument("--sentence-model", required=True)
 parser.add_argument("--c-max-length", default=20)
 parser.add_argument("--s-max-length", default=60)
 parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
-parser.add_argument("--train-data", default="/local/fever-common/data/fever-data/train.jsonl")
-parser.add_argument("--dev-data", default="/local/fever-common/data/fever-data/shared_task_dev.jsonl")
-parser.add_argument("--test-data", default="/local/fever-common/data/fever-data/shared_task_test.jsonl")
+parser.add_argument("--train-data", default="data/fever/train.wiki7.jsonl")
+parser.add_argument("--dev-data", default="data/fever/dev.wiki7.jsonl")
+parser.add_argument("--test-data", default="data/fever/test.wiki7.jsonl")
 parser.add_argument("--add-claim", default=True)
 
 args = parser.parse_args()
 
-k_wiki = 5
+k_wiki = 7
 
 class Struct:
     def __init__(self, **entries):
@@ -40,6 +40,10 @@ def get_iwords(prog_args, retrieval):
 
     args = Config.sentence_retrieval_ensemble_param
     args.update(vars(prog_args))
+
+    print(args.train_data)
+    print(args.dev_data)
+    print(args.test_data)
 
     args = Struct(**args)
     data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
@@ -58,16 +62,18 @@ def setup():
     # Document Retrieval
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
-
     # Sentence Selection
     words, iwords = get_iwords(args, retrieval)
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
     sentence_loader.load_models(words,iwords)
 
-    selection = SentenceESIM(h_max_length=args.c_max_length, s_max_length=args.s_max_length, learning_rate=args.learning_rate,
-                       batch_size=args.batch_size, num_epoch=args.num_epoch, model_store_dir=args.sentence_model,
-                       embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=args.dropout_rate,
-                       num_units=args.num_lstm_units, share_rnn=args.share_parameters, activation=tf.nn.tanh)
+    sargs = Config.sentence_retrieval_ensemble_param
+    sargs.update(args)
+    sargs = Struct(**sargs)
+    selection = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+                       batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
+                       embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
+                       num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
