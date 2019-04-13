@@ -11,6 +11,7 @@ from tqdm import tqdm
 he_init = tf.contrib.layers.variance_scaling_initializer()
 dim_fasttext = 300
 
+tf.AUTO_REUSE = False
 
 class ESIM:
 

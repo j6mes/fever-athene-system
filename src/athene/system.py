@@ -1,9 +1,13 @@
+import argparse
 import os
 import numpy as np
 import tensorflow as tf
 import random
+import json
 from gensim.models.wrappers import FastText
 from argparse import ArgumentParser
+
+from fever.api.web_server import fever_web_api
 
 from athene.retrieval.document.doc_retrieval import Doc_Retrieval
 from athene.retrieval.sentences.data_processing.data import Data
@@ -60,7 +64,7 @@ def get_iwords(prog_args, retrieval):
 
 
 
-def setup():
+def fever_app(caller):
     # Setup logging
     LogHelper.setup()
     logger = LogHelper.get_logger("setup")
@@ -84,10 +88,10 @@ def setup():
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
-    selection_models = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+    selection_model = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh)]*sargs.num_models
+                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh)
 
     #for i in range(sargs.num_model):
     #    logger.info("Restore Model {}".format(i))
@@ -108,22 +112,7 @@ def setup():
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
-    # Load
-    logger.info("Setup models")
-    logger.info("Load sentence models")
-    for i,model in enumerate(selection_models):
-        logger.info("Restore sentence model {}".format(i))
-        model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-
-        if not os.path.exists(model_store_path):
-            raise Exception("model must be trained before testing")
-
-        model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
-
-    logger.info("Restore RTE model")
     rte_predictor.restore_model(rte_predictor.ckpt_path)
-
-
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
@@ -142,8 +131,17 @@ def setup():
         for i in range(sargs.num_model):
             predictions = []
 
+            logger.info("Restore sentence model {}".format(i))
+            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+
+            if not os.path.exists(model_store_path):
+                raise Exception("model must be trained before testing")
+
+            selection_model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+
+
             for test_index in indexes:
-                prediction = selection_models[i].predict(test_index)
+                prediction = selection_model.predict(test_index)
                 predictions.append(prediction)
 
             all_predictions.append(predictions)
@@ -175,6 +173,7 @@ def setup():
             'embedding': embeddings
         }
 
+
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         return predictions
 
@@ -192,7 +191,38 @@ def setup():
             ret.append(return_line)
         return ret
 
-    print(process_claims([{"claim":"This is a test"}]))
+    return caller(process_claims)
+
+def web():
+    return fever_app(fever_web_api)
 
 
-setup()
+if __name__ == "__main__":
+    call_method = None
+
+    def cli_method(predict_function):
+        global call_method
+        call_method = predict_function
+
+    def cli():
+        return fever_app(cli_method)
+
+    cli()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--in-file")
+    parser.add_argument("--out-file")
+    args = parser.parse_args()
+
+    claims = []
+
+    with open(args.in_file,"r") as in_file:
+        for text_line in in_file:
+            line = json.loads(text_line)
+            claims.append(line)
+
+    ret = call_method(claims)
+
+    with open(args.out_file,"w+") as out_file:
+        for prediction in ret:
+            out_file.write(json.dumps(prediction)+"\n")

@@ -59,11 +59,18 @@ RUN conda uninstall -y Cython
 RUN pip uninstall -y pyfasttext
 RUN pip install --force --upgrade cysignals==1.7.2
 RUN pip install --force --upgrade pyfasttext
-RUN conda install tensorflow=1.9.0
+RUN conda install tensorflow=1.9.0 tensorflow-gpu=1.9.0
+
 RUN python -c "import nltk; nltk.download('punkt')"
+
+RUN wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
+RUN unzip glove.6B.zip -d data/glove && rm glove.6B.zip
+RUN gzip data/glove/*.txt
 
 ADD src src
 ENV PYTHONPATH /fever/src
 CMD bash
 
-CMD python -m athene.system --db-path /local/fever-common/data/fever/fever.db --sentence-model models/
+RUN mkdir -p model/sentence
+CMD python -m athene.system --db-path /local/fever-common/data/fever/fever.db --words-cache model/sentence --sentence-model model/esim_0/sentence_retrieval_ensemble
+CMD ["waitress-serve", "--host=0.0.0.0","--port=5000", "--call", "athene.system:web"]

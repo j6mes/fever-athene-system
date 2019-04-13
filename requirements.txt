@@ -8,3 +8,4 @@ allennlp
 wikipedia
 pyfasttext
 gensim
+fever-api
