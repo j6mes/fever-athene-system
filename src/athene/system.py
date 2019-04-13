@@ -40,12 +40,13 @@ def get_iwords(prog_args, retrieval):
 
     args = Config.sentence_retrieval_ensemble_param
     args.update(vars(prog_args))
+    
+    args = Struct(**args)
 
     print(args.train_data)
     print(args.dev_data)
     print(args.test_data)
 
-    args = Struct(**args)
     data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
                 num_negatives=args.num_negatives, h_max_length=args.c_max_length, s_max_length=args.s_max_length,
                 random_seed=args.random_seed, reserve_embed=args.reserve_embed, db_filepath=args.db_path, load_instances=False, retrieval=retrieval)
