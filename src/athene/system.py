@@ -94,7 +94,7 @@ def setup():
         model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
         if not os.path.exists(model_store_path):
             raise Exception("model must be trained before testing")
-        selection[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+        selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
     # RTE
