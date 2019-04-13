@@ -40,7 +40,7 @@ def get_iwords(prog_args, retrieval):
 
     args = Config.sentence_retrieval_ensemble_param
     args.update(vars(prog_args))
-    
+
     args = Struct(**args)
 
     print(args.train_data)

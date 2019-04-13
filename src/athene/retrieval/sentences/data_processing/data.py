@@ -116,7 +116,6 @@ class Data(object):
 
     def handle(self,line,num_sample):
         ret = []
-        print(line)
         if not "predicted_pages" in line:
             line = processed_line(self.retrieval, line)
         pos_pairs = []
