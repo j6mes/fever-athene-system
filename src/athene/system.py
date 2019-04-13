@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 import random
-
+from gensim.models.wrappers import FastText
 from argparse import ArgumentParser
 
 from athene.retrieval.document.doc_retrieval import Doc_Retrieval
@@ -12,12 +12,17 @@ from athene.retrieval.sentences.deep_models.ESIM import ESIM as SentenceESIM
 from athene.retrieval.sentences.ensemble import scores_processing, post_processing, prediction_processing, \
     prediction_processing_no_reload, training_phase
 from athene.retrieval.sentences.ensemble import entrance as sentence_retrieval_ensemble_entrance
+from athene.rte.utils.data_reader import embed_data_set_with_glove_and_fasttext, embed_claims
+from athene.rte.utils.estimator_definitions import get_estimator
+from athene.rte.utils.text_processing import load_whole_glove, vocab_map
 from athene.utils.config import Config
+from common.util.log_helper import LogHelper
 
 parser = ArgumentParser()
 parser.add_argument("--db-path",required=True)
 parser.add_argument("--random-seed",default=1234)
 parser.add_argument("--sentence-model", required=True)
+parser.add_argument("--words-cache", required=True)
 parser.add_argument("--c-max-length", default=20)
 parser.add_argument("--s-max-length", default=60)
 parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
@@ -47,7 +52,7 @@ def get_iwords(prog_args, retrieval):
     print(args.dev_data)
     print(args.test_data)
 
-    data = Data(args.sentence_model, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
+    data = Data(args.words_cache, args.train_data, args.dev_data, args.test_data, args.fasttext_path,
                 num_negatives=args.num_negatives, h_max_length=args.c_max_length, s_max_length=args.s_max_length,
                 random_seed=args.random_seed, reserve_embed=args.reserve_embed, db_filepath=args.db_path, load_instances=False, retrieval=retrieval)
 
@@ -56,14 +61,22 @@ def get_iwords(prog_args, retrieval):
 
 
 def setup():
+    # Setup logging
+    LogHelper.setup()
+    logger = LogHelper.get_logger("setup")
+    logger.info("Logging started")
+
     # Set seeds
+    logger.info("Set Seeds")
     np.random.seed(args.random_seed)
     random.seed(args.random_seed)
 
     # Document Retrieval
+    logger.info("Setup document retrieval")
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
     # Sentence Selection
+    logger.info("Setup sentence retrieval")
     words, iwords = get_iwords(args, retrieval)
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
     sentence_loader.load_models(words,iwords)
@@ -76,6 +89,14 @@ def setup():
                        embedding=sentence_loader.embed, word_dict=sentence_loader.iword_dict, dropout_rate=sargs.dropout_rate,
                        num_units=sargs.num_lstm_units, share_rnn=sargs.share_parameters, activation=tf.nn.tanh)
 
+
+    # RTE
+    logger.info("Setup RTE")
+    estimator = get_estimator(Config.estimator_name, Config.ckpt_folder)
+    vocab, embeddings = load_whole_glove(Config.glove_path)
+    vocab = vocab_map(vocab)
+    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
+
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
         line['noun_phrases'] = nps
@@ -86,13 +107,12 @@ def setup():
     def get_docs(lines):
         return list(map(get_docs_line, lines))
 
-
     def get_sents(lines):
         indexes, location_indexes = sentence_loader.get_indexes(lines)
         all_predictions = []
 
         for i in range(sargs.num_model):
-            model_store_path = os.path.join(args.model_path, "model{}".format(i + 1))
+            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
             if not os.path.exists(model_store_path):
                 raise Exception("model must be trained before testing")
 
@@ -112,9 +132,34 @@ def setup():
 
         return final_predictions
 
+    def run_rte(lines):
+        test_set, _, _, _, _, _ = embed_claims(lines, args.db_path,
+                                                 fasttext_model, vocab_dict=vocab,
+                                                 glove_embeddings=embeddings,
+                                                 threshold_b_sent_num=Config.max_sentences,
+                                                 threshold_b_sent_size=Config.max_sentence_size,
+                                                 threshold_h_sent_size=Config.max_claim_size)
+
+        h_sent_sizes = test_set['data']['h_sent_sizes']
+        h_sizes = np.ones(len(h_sent_sizes), np.int32)
+        test_set['data']['h_sent_sizes'] = np.expand_dims(h_sent_sizes, 1)
+        test_set['data']['h_sizes'] = h_sizes
+        test_set['data']['h_np'] = np.expand_dims(test_set['data']['h_np'], 1)
+        test_set['data']['h_ft_np'] = np.expand_dims(test_set['data']['h_ft_np'], 1)
+
+        x_dict = {
+            'X_test': test_set['data'],
+            'embedding': embeddings
+        }
+
+        predictions = estimator.predict(x_dict, True) #TODO try with False
+        print(predictions)
+
     def process_claim(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
+        claims = run_rte(claims)
+        print()
         return claims
 
     return process_claim([{"claim":"This is a test"}])

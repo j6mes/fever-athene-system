@@ -161,6 +161,70 @@ def read_data_set_from_jsonl(file_path: str, db: Union[str, FeverDocDB], predict
         return datas, labels
 
 
+
+def read_data_set_from_lines(lines: List, db: Union[str, FeverDocDB], predicted: bool = True, num_sentences=None,
+                             is_snopes=False):
+    logger = LogHelper.get_logger("read_data_set_from_jsonl")
+    if not is_snopes:
+        if type(db) is str:
+            db = FeverDocDB(db)
+    else:
+        with open(db) as f:
+            db = json.load(f)
+
+    claims = []
+    evidences = []
+    paths = []
+    labels = []
+    ids = []
+    for line in tqdm(lines):
+        json_obj = line
+        if predicted:
+            evidences_texts = []
+            if 'predicted_evidence' in json_obj:
+                _evidences = json_obj['predicted_evidence']
+            elif 'predicted_sentences' in json_obj:
+                _evidences = json_obj['predicted_sentences']
+            else:
+                _evidences = []
+            if len(_evidences) > 0:
+                for sent in _evidences:
+                    page, line_num = sent[-2], sent[-1]
+                    page_title = page.replace("_", " ")
+                    evidences_texts.append(
+                        # page_title + " # " + clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
+                        clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
+        else:
+            evidences_texts = set()
+            _evidences = json_obj['evidence']
+            for evidence in _evidences:
+                for sent in evidence:
+                    page, line_num = sent[-2], sent[-1]
+                    page_title = page.replace("_", " ")
+                    evidences_texts.add(
+                        # page_title + " # " + clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
+                        clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
+            evidences_texts = list(evidences_texts)
+        if len(evidences_texts) == 0:
+            continue
+        if num_sentences is not None:
+            if len(evidences_texts) > num_sentences:
+                evidences_texts = evidences_texts[:num_sentences]
+        claims.append(clean_text(json_obj['claim']))
+        if 'label' in json_obj:
+            labels.append(label_dict.index(json_obj['label']))
+        evidences.append(evidences_texts)
+        if 'paths' in json_obj:
+            paths_from_sent_to_claim = [1.0 if p else 0.0 for p in json_obj['paths']]
+            if num_sentences is not None and num_sentences > len(paths_from_sent_to_claim):
+                paths_from_sent_to_claim += [0.0] * (num_sentences - len(paths_from_sent_to_claim))
+            paths.append(paths_from_sent_to_claim)
+        ids.append(json_obj['id'])
+    datas = {'h': claims, 'b': evidences, 'id': ids}
+    if paths:
+        datas['paths'] = paths
+    return datas, labels
+
 def generate_evidence_labels(_evidences, _gold_evidences):
     _segmenter = "§§§"
     _gold_sents = set()
@@ -341,6 +405,52 @@ def embed_data_set_with_glove_and_fasttext(data_set_path: str, db: Union[str, Fe
     if labels is not None and len(labels) == len(processed_data_set['id']):
         processed_data_set['label'] = labels
     return processed_data_set, fasttext_model, vocab_dict, glove_embeddings, threshold_b_sent_num, threshold_b_sent_size
+
+
+def embed_claims(claims: List, db: Union[str, FeverDocDB],
+                                           fasttext_model: Union[str, FastText], glove_path: str = None,
+                                           vocab_dict: Dict[str, int] = None, glove_embeddings=None,
+                                           predicted: bool = True, threshold_b_sent_num=None,
+                                           threshold_b_sent_size=50, threshold_h_sent_size=50, is_snopes=False):
+    assert vocab_dict is not None and glove_embeddings is not None or glove_path is not None, "Either vocab_dict and glove_embeddings, or glove_path should be not None"
+    if vocab_dict is None or glove_embeddings is None:
+        vocab, glove_embeddings = load_whole_glove(glove_path)
+        vocab_dict = vocab_map(vocab)
+    logger = LogHelper.get_logger("embed_data_set_given_vocab")
+    datas, labels = read_data_set_from_lines(claims, db, predicted, is_snopes=is_snopes)
+    heads_ft_embeddings, fasttext_model = single_sentence_set_2_fasttext_embedded(datas['h'], fasttext_model)
+    logger.debug("Finished sentence to FastText embeddings for claims")
+    heads_ids = single_sentence_set_2_ids_given_vocab(datas['h'], vocab_dict)
+    logger.debug("Finished sentence to IDs for claims")
+    bodies_ft_embeddings, fasttext_model = multi_sentence_set_2_fasttext_embedded(datas['b'], fasttext_model)
+    logger.debug("Finished sentence to FastText embeddings for evidences")
+    bodies_ids = multi_sentence_set_2_ids_given_vocab(datas['b'], vocab_dict)
+    logger.debug("Finished sentence to IDs for evidences")
+    h_ft_np = fasttext_padding_for_single_sentence_set_given_size(heads_ft_embeddings, threshold_h_sent_size)
+    logger.debug("Finished padding FastText embeddings for claims. Shape of h_ft_np: {}".format(str(h_ft_np.shape)))
+    b_ft_np = fasttext_padding_for_multi_sentences_set(bodies_ft_embeddings, threshold_b_sent_num,
+                                                       threshold_b_sent_size)
+    logger.debug("Finished padding FastText embeddings for evidences. Shape of b_ft_np: {}".format(str(b_ft_np.shape)))
+    h_np, h_sent_sizes = ids_padding_for_single_sentence_set_given_size(
+        heads_ids, threshold_h_sent_size)
+    logger.debug("Finished padding claims")
+    b_np, b_sizes, b_sent_sizes = ids_padding_for_multi_sentences_set(
+        bodies_ids, threshold_b_sent_num, threshold_b_sent_size)
+    logger.debug("Finished padding evidences")
+    processed_data_set = {'data': {
+        'h_np': h_np,
+        'b_np': b_np,
+        'h_ft_np': h_ft_np,
+        'b_ft_np': b_ft_np,
+        'h_sent_sizes': h_sent_sizes,
+        'b_sent_sizes': b_sent_sizes,
+        'b_sizes': b_sizes
+    }, 'id': datas['id']
+    }
+    if labels is not None and len(labels) == len(processed_data_set['id']):
+        processed_data_set['label'] = labels
+    return processed_data_set, fasttext_model, vocab_dict, glove_embeddings, threshold_b_sent_num, threshold_b_sent_size
+
 
 
 def pad_paths(paths, threshold_b_sent_num):

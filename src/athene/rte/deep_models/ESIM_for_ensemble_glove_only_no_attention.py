@@ -625,7 +625,6 @@ class ESIM(BaseEstimator, ClassifierMixin):
         return np_probas
 
     def predict(self, X_dict, restore_param_required=True):
-
         predictions = np.argmax(self.predict_proba(X_dict, restore_param_required), axis=1)
         return np.reshape(predictions, (-1,))
 
