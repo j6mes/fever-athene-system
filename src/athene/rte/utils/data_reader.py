@@ -445,10 +445,9 @@ def embed_claims(claims: List, db: Union[str, FeverDocDB],
         'h_sent_sizes': h_sent_sizes,
         'b_sent_sizes': b_sent_sizes,
         'b_sizes': b_sizes
-    }, 'id': datas['id']
     }
-    if labels is not None and len(labels) == len(processed_data_set['id']):
-        processed_data_set['label'] = labels
+    }
+
     return processed_data_set, fasttext_model, vocab_dict, glove_embeddings, threshold_b_sent_num, threshold_b_sent_size
 
 

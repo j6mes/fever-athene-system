@@ -93,8 +93,11 @@ def setup():
     # RTE
     logger.info("Setup RTE")
     estimator = get_estimator(Config.estimator_name, Config.ckpt_folder)
+    logger.info("Load GloVe")
     vocab, embeddings = load_whole_glove(Config.glove_path)
+    logger.info("Map Vocab")
     vocab = vocab_map(vocab)
+    logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
     def get_docs_line(line):
