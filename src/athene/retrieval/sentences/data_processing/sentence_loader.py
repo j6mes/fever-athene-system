@@ -37,11 +37,6 @@ class SentenceDataLoader(object):
             self.word_dict = words
             self.iword_dict = iwords
 
-        # Add padding token
-        _PAD_ = len(self.word_dict)
-        self.word_dict[_PAD_] = '[PAD]'
-        self.iword_dict['[PAD]'] = _PAD_
-
         # Load Embeddings
         embed_dict = self.load_fasttext(self.word_dict)
         self.embed = self.embed_to_numpy(embed_dict)
