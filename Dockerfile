@@ -49,6 +49,10 @@ RUN unzip claim_verification_esim_glove_fasttext.ckpt.zip -d model/esim_0/rte_ch
 RUN unzip sentence_retrieval_ensemble.ckpt.zip -d model/esim_0/sentence_retrieval_ensemble/
 RUN unzip document_retrieval_datasets.zip -d data/fever/
 
+RUN wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
+RUN unzip glove.6B.zip -d data/glove && rm glove.6B.zip
+RUN gzip data/glove/*.txt
+
 RUN rm *.zip
 
 RUN conda install python=3.6
@@ -63,14 +67,8 @@ RUN conda install tensorflow=1.9.0 tensorflow-gpu=1.9.0
 
 RUN python -c "import nltk; nltk.download('punkt')"
 
-RUN wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
-RUN unzip glove.6B.zip -d data/glove && rm glove.6B.zip
-RUN gzip data/glove/*.txt
-
 ADD src src
 ENV PYTHONPATH /fever/src
 CMD bash
-
-RUN mkdir -p model/sentence
 CMD python -m athene.system --db-path /local/fever-common/data/fever/fever.db --words-cache model/sentence --sentence-model model/esim_0/sentence_retrieval_ensemble
 CMD ["waitress-serve", "--host=0.0.0.0","--port=5000", "--call", "athene.system:web"]
