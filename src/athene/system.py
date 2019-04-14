@@ -125,7 +125,7 @@ def fever_app(caller):
 
 
     logger.info("Load FastText")
-    fasttext_model = None# FastText.load_fasttext_format(Config.fasttext_path)
+    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
@@ -192,7 +192,6 @@ def fever_app(caller):
     def process_claims(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
-        print(claims)
         predictions = run_rte(claims)
 
         ret = []
