@@ -22,20 +22,6 @@ from athene.rte.utils.text_processing import load_whole_glove, vocab_map
 from athene.utils.config import Config
 from common.util.log_helper import LogHelper
 
-parser = ArgumentParser()
-parser.add_argument("--db-path",default="/local/fever-common/data/fever/fever.db")
-parser.add_argument("--random-seed",default=1234)
-parser.add_argument("--sentence-model", default="model/esim_0/sentence_retrieval_ensemble")
-parser.add_argument("--words-cache", default="model/sentence")
-parser.add_argument("--c-max-length", default=20)
-parser.add_argument("--s-max-length", default=60)
-parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
-parser.add_argument("--train-data", default="data/fever/train.wiki7.jsonl")
-parser.add_argument("--dev-data", default="data/fever/dev.wiki7.jsonl")
-parser.add_argument("--test-data", default="data/fever/test.wiki7.jsonl")
-parser.add_argument("--add-claim", default=True)
-
-args = parser.parse_args()
 
 k_wiki = 7
 
@@ -65,6 +51,21 @@ def get_iwords(prog_args, retrieval):
 
 
 def fever_app(caller):
+    parser = ArgumentParser()
+    parser.add_argument("--db-path", default="/local/fever-common/data/fever/fever.db")
+    parser.add_argument("--random-seed", default=1234)
+    parser.add_argument("--sentence-model", default="model/esim_0/sentence_retrieval_ensemble")
+    parser.add_argument("--words-cache", default="model/sentence")
+    parser.add_argument("--c-max-length", default=20)
+    parser.add_argument("--s-max-length", default=60)
+    parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
+    parser.add_argument("--train-data", default="data/fever/train.wiki7.jsonl")
+    parser.add_argument("--dev-data", default="data/fever/dev.wiki7.jsonl")
+    parser.add_argument("--test-data", default="data/fever/test.wiki7.jsonl")
+    parser.add_argument("--add-claim", default=True)
+
+    args = parser.parse_args()
+
     # Setup logging
     LogHelper.setup()
     logger = LogHelper.get_logger("setup")
