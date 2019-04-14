@@ -192,6 +192,7 @@ def fever_app(caller):
     def process_claims(claims):
         claims = get_docs(claims)
         claims = get_sents(claims)
+        print(claims)
         predictions = run_rte(claims)
 
         ret = []
