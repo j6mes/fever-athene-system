@@ -94,7 +94,7 @@ def fever_app(caller):
 
     # Document Retrieval
     logger.info("Setup document retrieval")
-    retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
+    #retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
     # Sentence Selection
     logger.info("Setup sentence retrieval")

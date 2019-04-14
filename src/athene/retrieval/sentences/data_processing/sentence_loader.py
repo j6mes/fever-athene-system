@@ -43,7 +43,7 @@ class SentenceDataLoader(object):
         self.iword_dict['[PAD]'] = _PAD_
 
         # Load Embeddings
-        embed_dict = self.load_fasttext(self.iword_dict)
+        embed_dict = self.load_fasttext(self.word_dict)
         self.embed = self.embed_to_numpy(embed_dict)
 
     def get_indexes(self, lines):
@@ -348,11 +348,11 @@ class SentenceDataLoader(object):
         return iword_dict
 
     def load_fasttext(self, iword_dict):
-
+        
         embed_dict = {}
         print(self.fasttext_path)
         model = FastText(self.fasttext_path)
-        for word, key in iword_dict.items():
+        for word, key in tqdm(iword_dict.items()):
             embed_dict[key] = model[word]
             # print(embed_dict[key])
         print('Embedding size: %d' % (len(embed_dict)))
