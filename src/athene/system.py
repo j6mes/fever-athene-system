@@ -101,7 +101,7 @@ def fever_app(caller):
     #words, iwords = get_iwords(args, retrieval)
 
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
-    sentence_loader.load_models(vocab,sentence_loader.iword_dict(vocab))
+    sentence_loader.load_models(vocab,sentence_loader.inverse_word_dict(vocab))
 
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
