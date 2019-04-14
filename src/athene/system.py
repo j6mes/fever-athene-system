@@ -51,20 +51,32 @@ def get_iwords(prog_args, retrieval):
 
 
 def fever_app(caller):
-    parser = ArgumentParser()
-    parser.add_argument("--db-path", default="/local/fever-common/data/fever/fever.db")
-    parser.add_argument("--random-seed", default=1234)
-    parser.add_argument("--sentence-model", default="model/esim_0/sentence_retrieval_ensemble")
-    parser.add_argument("--words-cache", default="model/sentence")
-    parser.add_argument("--c-max-length", default=20)
-    parser.add_argument("--s-max-length", default=60)
-    parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
-    parser.add_argument("--train-data", default="data/fever/train.wiki7.jsonl")
-    parser.add_argument("--dev-data", default="data/fever/dev.wiki7.jsonl")
-    parser.add_argument("--test-data", default="data/fever/test.wiki7.jsonl")
-    parser.add_argument("--add-claim", default=True)
+    #parser = ArgumentParser()
+    #parser.add_argument("--db-path", default="/local/fever-common/data/fever/fever.db")
+    #parser.add_argument("--random-seed", default=1234)
+    #parser.add_argument("--sentence-model", default="model/esim_0/sentence_retrieval_ensemble")
+    #parser.add_argument("--words-cache", default="model/sentence")
+    #parser.add_argument("--c-max-length", default=20)
+    #parser.add_argument("--s-max-length", default=60)
+    #parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
+    #parser.add_argument("--train-data", default="data/fever/train.wiki7.jsonl")
+    #parser.add_argument("--dev-data", default="data/fever/dev.wiki7.jsonl")
+    #parser.add_argument("--test-data", default="data/fever/test.wiki7.jsonl")
+    #parser.add_argument("--add-claim", default=True)
 
-    args = parser.parse_args()
+    args =Struct(**{"db_path": "/local/fever-common/data/fever/fever.db",
+                    "random_seed":1234,
+                    "sentence_model": "model/esim_0/sentence_retrieval_ensemble",
+                    "words_cache":"model/sentence",
+                    "c_max_length":20,
+                    "s_max_length":60,
+                    "fasttext_path": "data/fasttext/wiki.en.bin",
+                    "train_data": "data/fever/train.wiki7.jsonl",
+                    "dev_data":"data/fever/dev.wiki7.jsonl",
+                    "test_data":"data/fever/test.wiki7.jsonl",
+                    "add_claim":True
+
+    })
 
     # Setup logging
     LogHelper.setup()
