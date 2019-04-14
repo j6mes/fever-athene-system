@@ -374,7 +374,11 @@ class SentenceDataLoader(object):
             if idx >= max_length:
                 break
             else:
-                word_indexes.append(word_dict[word.lower()])
+                try:
+                    word_indexes.append(word_dict[word.lower()])
+                except KeyError:
+                    print("OOV: {}" % word.lower())
+                    word_indexes.append(word_dict["<unk>"])
         return word_indexes
 
     def train_data_indexes(self, X, word_dict):
