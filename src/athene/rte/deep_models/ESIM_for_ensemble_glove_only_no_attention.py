@@ -591,7 +591,7 @@ class ESIM(BaseEstimator, ClassifierMixin):
             return self
 
     def predict_proba(self, X_dict, restore_param_required=True):
-        import pickle
+
         self.logger.debug("testing...")
         X = X_dict['X_test']
         self.embedding = X_dict['embedding']
@@ -618,11 +618,7 @@ class ESIM(BaseEstimator, ClassifierMixin):
             for prediction in predictions_batch:
                 probabilities.append(prediction)
         np_probas = np.asarray(probabilities)
-        # save predictions
-        _prediction_save_file = self.ckpt_path + "_predictions.p"
-        with open(_prediction_save_file, 'wb') as f:
-            pickle.dump(np_probas, f, protocol=pickle.HIGHEST_PROTOCOL)
-            self.logger.info("predictions saved in " + _prediction_save_file)
+
         return np_probas
 
     def predict(self, X_dict, restore_param_required=True):
