@@ -348,7 +348,7 @@ class SentenceDataLoader(object):
         print(self.fasttext_path)
         model = FastText(self.fasttext_path)
         for word, key in tqdm(word_dict.items()):
-            
+
             embed_dict[key] = model[word]
             # print(embed_dict[key])
         print('Embedding size: %d' % (len(embed_dict)))
@@ -377,7 +377,7 @@ class SentenceDataLoader(object):
                 try:
                     word_indexes.append(word_dict[word.lower()])
                 except KeyError:
-                    print("OOV: {}" % word.lower())
+                    print("OOV: {}".format(word.lower()))
                     word_indexes.append(word_dict["<unk>"])
         return word_indexes
 
