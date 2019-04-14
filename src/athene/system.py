@@ -23,10 +23,10 @@ from athene.utils.config import Config
 from common.util.log_helper import LogHelper
 
 parser = ArgumentParser()
-parser.add_argument("--db-path",required=True)
+parser.add_argument("--db-path",default="/local/fever-common/data/fever/fever.db")
 parser.add_argument("--random-seed",default=1234)
-parser.add_argument("--sentence-model", required=True)
-parser.add_argument("--words-cache", required=True)
+parser.add_argument("--sentence-model", default="model/esim_0")
+parser.add_argument("--words-cache", default="model/sentence")
 parser.add_argument("--c-max-length", default=20)
 parser.add_argument("--s-max-length", default=60)
 parser.add_argument("--fasttext-path", default="data/fasttext/wiki.en.bin")
@@ -172,7 +172,6 @@ def fever_app(caller):
             'X_test': test_set['data'],
             'embedding': embeddings
         }
-
 
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         return predictions
