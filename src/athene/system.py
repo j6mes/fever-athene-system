@@ -25,7 +25,7 @@ from common.util.log_helper import LogHelper
 parser = ArgumentParser()
 parser.add_argument("--db-path",default="/local/fever-common/data/fever/fever.db")
 parser.add_argument("--random-seed",default=1234)
-parser.add_argument("--sentence-model", default="model/esim_0")
+parser.add_argument("--sentence-model", default="model/esim_0/sentence_retrieval_ensemble")
 parser.add_argument("--words-cache", default="model/sentence")
 parser.add_argument("--c-max-length", default=20)
 parser.add_argument("--s-max-length", default=60)
