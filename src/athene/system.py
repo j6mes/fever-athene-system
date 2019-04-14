@@ -125,8 +125,6 @@ def fever_app(caller):
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
-    rte_predictor.restore_model(rte_predictor.ckpt_path)
-
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)
         line['noun_phrases'] = nps
@@ -186,6 +184,7 @@ def fever_app(caller):
             'embedding': embeddings
         }
 
+        rte_predictor.restore_model(rte_predictor.ckpt_path)
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         return predictions
 
