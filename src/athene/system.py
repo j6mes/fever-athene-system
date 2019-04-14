@@ -88,15 +88,20 @@ def fever_app(caller):
     np.random.seed(args.random_seed)
     random.seed(args.random_seed)
 
+    logger.info("Load GloVe")
+    vocab, embeddings = load_whole_glove(Config.glove_path)
+    vocab = vocab_map(vocab)
+
     # Document Retrieval
     logger.info("Setup document retrieval")
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
     # Sentence Selection
     logger.info("Setup sentence retrieval")
-    words, iwords = get_iwords(args, retrieval)
+    #words, iwords = get_iwords(args, retrieval)
+
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
-    sentence_loader.load_models(words,iwords)
+    sentence_loader.load_models(vocab,sentence_loader.iword_dict(vocab))
 
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
@@ -118,10 +123,7 @@ def fever_app(caller):
     logger.info("Setup RTE")
     rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
 
-    logger.info("Load GloVe")
-    vocab, embeddings = load_whole_glove(Config.glove_path)
-    logger.info("Map Vocab")
-    vocab = vocab_map(vocab)
+
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
@@ -184,7 +186,6 @@ def fever_app(caller):
             'embedding': embeddings
         }
 
-        rte_predictor.restore_model(rte_predictor.ckpt_path)
         predictions = rte_predictor.predict(x_dict, True) #TODO try with False
         return predictions
 
