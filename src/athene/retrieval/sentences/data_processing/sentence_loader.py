@@ -34,8 +34,8 @@ class SentenceDataLoader(object):
             with open(words_dict_path, "rb") as f:
                 self.word_dict = pickle.load(f)
         else:
-            self.word_dict = copy(words)
-            self.iword_dict = copy(iwords)
+            self.word_dict = words
+            self.iword_dict = iwords
 
         # Add padding token
         _PAD_ = len(self.word_dict)
@@ -343,16 +343,17 @@ class SentenceDataLoader(object):
     def inverse_word_dict(self, word_dict):
 
         iword_dict = {}
-        for key, word in word_dict.items():
-            iword_dict[word] = key
+        for word, idx in word_dict.items():
+            iword_dict[idx] = word
         return iword_dict
 
-    def load_fasttext(self, iword_dict):
-        
+    def load_fasttext(self, word_dict):
+
         embed_dict = {}
         print(self.fasttext_path)
         model = FastText(self.fasttext_path)
-        for word, key in tqdm(iword_dict.items()):
+        for word, key in tqdm(word_dict.items()):
+            print(word,key)
             embed_dict[key] = model[word]
             # print(embed_dict[key])
         print('Embedding size: %d' % (len(embed_dict)))
