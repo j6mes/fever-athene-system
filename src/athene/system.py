@@ -125,7 +125,7 @@ def fever_app(caller):
 
 
     logger.info("Load FastText")
-    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
+    fasttext_model = None# FastText.load_fasttext_format(Config.fasttext_path)
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)

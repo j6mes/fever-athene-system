@@ -73,7 +73,7 @@ class SentenceDataLoader(object):
             devs.append(dev)
             all_indexes.append(indexes)
 
-        return self.predict_data_indexes(devs, self.iword_dict), all_indexes
+        return self.predict_data_indexes(devs, self.word_dict), all_indexes
 
 
 
