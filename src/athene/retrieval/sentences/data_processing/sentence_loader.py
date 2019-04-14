@@ -348,7 +348,7 @@ class SentenceDataLoader(object):
         print(self.fasttext_path)
         model = FastText(self.fasttext_path)
         for word, key in tqdm(word_dict.items()):
-            print(word,key)
+            
             embed_dict[key] = model[word]
             # print(embed_dict[key])
         print('Embedding size: %d' % (len(embed_dict)))
