@@ -377,8 +377,13 @@ class SentenceDataLoader(object):
                 try:
                     word_indexes.append(word_dict[word.lower()])
                 except KeyError:
-                    print("OOV: {}".format(word.lower()))
-                    word_indexes.append(word_dict["<unk>"])
+                    if word.lower()=="-lrb-":
+                        word_indexes.append(word_dict["("])
+                    elif word.lower()=="-rrb-":
+                        word_indexes.append(word_dict[")"])
+                    else:
+                        print("OOV: {}".format(word.lower()))
+                        word_indexes.append(word_dict["<unk>"])
         return word_indexes
 
     def train_data_indexes(self, X, word_dict):
