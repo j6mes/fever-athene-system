@@ -150,13 +150,22 @@ class ESIM:
         else:
             self._training = None
 
-        with tf.variable_scope("embedding_lookup", reuse=True):
-            embedding = tf.get_variable("embedding",
-                                        initializer=self.embedding,
-                                        dtype=tf.float32,
-                                        trainable=self.trainable)
-            embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
-            embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
+        try:
+            with tf.variable_scope("embedding_lookup", reuse=True):
+                embedding = tf.get_variable("embedding",
+                                            initializer=self.embedding,
+                                            dtype=tf.float32,
+                                            trainable=self.trainable)
+                embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
+                embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
+        except ValueError:
+            with tf.variable_scope("embedding_lookup", reuse=False):
+                embedding = tf.get_variable("embedding",
+                                            initializer=self.embedding,
+                                            dtype=tf.float32,
+                                            trainable=self.trainable)
+                embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
+                embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
 
         if self.share_rnn:
             with tf.variable_scope("encode_rnn", reuse=tf.AUTO_REUSE):
