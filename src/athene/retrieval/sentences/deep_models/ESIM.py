@@ -151,8 +151,10 @@ class ESIM:
             self._training = None
 
         with tf.variable_scope("embedding_lookup", reuse=True):
-            embedding = tf.get_variable(initializer=self.embedding, dtype=tf.float32, trainable=self.trainable,
-                                        name="word_embeddings")
+            embedding = tf.get_variable("embedding",
+                                        initializer=self.embedding,
+                                        dtype=tf.float32,
+                                        trainable=self.trainable)
             embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
             embed_s = tf.nn.embedding_lookup(embedding, ids=X_s)
 
@@ -439,7 +441,7 @@ class ESIM:
         config.gpu_options.per_process_gpu_memory_fraction = float(os.getenv("TF_GPU_MEMORY_FRACTION","0.5"))
         self._session = tf.Session(config=config)
         with tf.variable_scope("embedding_lookup", reuse=True):
-            v = tf.get_variable("word_embeddings")
+            v = tf.get_variable("embedding")
             self._session.run(v.initializer)
         self._saver.restore(self._session, path)
         return self
