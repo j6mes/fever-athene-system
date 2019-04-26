@@ -125,8 +125,8 @@ class ESIM:
 
     def mlp(self, outputs):
         with tf.variable_scope(self.namespace):
-            outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer, name="dense_1")
-            
+            outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer, name="dense")
+
         if self.dropout_rate:
             outputs = tf.layers.dropout(outputs, rate=self.dropout_rate, training=self._training)
 
@@ -212,7 +212,7 @@ class ESIM:
         dense_output = self.mlp(v)
 
         with tf.variable_scope(self.namespace):
-            scores = tf.layers.dense(dense_output, 1)
+            scores = tf.layers.dense(dense_output, 1, name="dense_1")
 
         pos = tf.strided_slice(scores, [0], [self.batch_size], [2])
         neg = tf.strided_slice(scores, [1], [self.batch_size], [2])
