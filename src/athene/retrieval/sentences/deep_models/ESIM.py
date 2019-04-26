@@ -172,8 +172,8 @@ class ESIM:
                 h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units)
                 s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units)
         else:
-            h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
-            s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
+            h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn/"+self.namespace)
+            s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn/"+self.namespace)
 
         sent_attends, claim_attends = self._inter_atten(h_encodings, s_encodings, X_h_length, X_s_length)
 
