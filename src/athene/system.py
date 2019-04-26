@@ -106,17 +106,17 @@ def fever_app(caller):
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
-    selection_model = SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
+    selections = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.word_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh)
+                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh, namespace="model_{}".format(i)) for i in range(sargs.num_model)]
 
-    #for i in range(sargs.num_model):
-    #    logger.info("Restore Model {}".format(i))
-    #    model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-    #    if not os.path.exists(model_store_path):
-    #        raise Exception("model must be trained before testing")
-    #    selections.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+    for i in range(sargs.num_model):
+        logger.info("Restore Model {}".format(i))
+        model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+        if not os.path.exists(model_store_path):
+            raise Exception("model must be trained before testing")
+        selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
     # RTE
@@ -144,13 +144,15 @@ def fever_app(caller):
         for i in range(sargs.num_model):
             predictions = []
 
-            logger.info("Restore sentence model {}".format(i))
-            model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
+            selection_model = selections[i]
 
-            if not os.path.exists(model_store_path):
-                raise Exception("model must be trained before testing")
+            #logger.info("Restore sentence model {}".format(i))
+            #model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
 
-            selection_model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
+            #if not os.path.exists(model_store_path):
+            #    raise Exception("model must be trained before testing")
+
+            #selection_model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
             for test_index in indexes:

@@ -18,7 +18,7 @@ class ESIM:
     def __init__(self, optimizer=tf.train.AdamOptimizer, h_max_length=10, s_max_length=40, learning_rate=0.0001,
                  batch_size=128, activation=tf.nn.tanh, initializer=he_init, num_epoch=100, dropout_rate=None,
                  embedding=None, word_dict=None, max_check_without_progress=3, model_store_dir=None, random_state=None,
-                 l2_lambda=0, trainable=False, share_rnn=False, num_units=128):
+                 l2_lambda=0, trainable=False, share_rnn=False, num_units=128,namespace=""):
 
         self.optimizer = optimizer
         self.h_max_length = h_max_length
@@ -38,7 +38,7 @@ class ESIM:
         self.trainable = trainable
         self.share_rnn = share_rnn
         self.num_units = num_units
-
+        self.namespace = namespace
         self._session = None
         # self.logger = LogHelper.get_logger(self.__class__.__name__)
 
@@ -246,6 +246,8 @@ class ESIM:
     def _restore_model_parameters(self, model_parameters):
 
         gvar_names = list(model_parameters.keys())
+
+        print(gvar_names)
 
         assign_ops = {gvar_name: self._graph.get_operation_by_name(gvar_name + "/Assign") for gvar_name in gvar_names}
 
