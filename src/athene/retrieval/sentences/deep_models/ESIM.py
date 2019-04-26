@@ -125,8 +125,8 @@ class ESIM:
 
     def mlp(self, outputs):
         with tf.variable_scope(self.namespace):
-            outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer)
-
+            outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer, name="dense_1")
+            
         if self.dropout_rate:
             outputs = tf.layers.dropout(outputs, rate=self.dropout_rate, training=self._training)
 
