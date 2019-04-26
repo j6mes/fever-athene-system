@@ -40,7 +40,8 @@ class ESIM:
         self.num_units = num_units
         self.namespace = namespace
         self._session = None
-        print("NAMESAPCE {}".format(namespace))
+        self._graph = None
+        print("NAMESPACE {}".format(namespace))
         # self.logger = LogHelper.get_logger(self.__class__.__name__)
 
     # use gru cell for rnn model
@@ -450,12 +451,14 @@ class ESIM:
                 return self
 
     def restore_model(self, path):
-        self._construct_graph()
-
+        self._graph = tf.Graph()
+        with self._graph.as_default():
+            self._construct_graph()
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.gpu_options.per_process_gpu_memory_fraction = float(os.getenv("TF_GPU_MEMORY_FRACTION","0.5"))
-        self._session = tf.Session(config=config)
+
+        self._session = tf.Session(config=config, graph=self._graph)
         with tf.variable_scope("embedding_lookup", reuse=True):
             v = tf.get_variable("embedding")
             self._session.run(v.initializer)
