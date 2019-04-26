@@ -221,7 +221,7 @@ class ESIM:
 
         init = tf.global_variables_initializer()
         print("GET VARS")
-        print(tf.GraphKeys.TRAINABLE_VARIABLES)
+        print(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
         saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
         # print("\n".join([str(el) for el in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]))
 
