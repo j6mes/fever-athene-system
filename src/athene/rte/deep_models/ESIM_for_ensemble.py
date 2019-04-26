@@ -358,10 +358,24 @@ class ESIM(BaseEstimator, ClassifierMixin):
     def _ann(self, head_inputs, body_inputs, h_sizes, b_sizes, h_sent_sizes, b_sent_sizes, head_fasttext,
              body_fasttext):
 
-        with tf.variable_scope("embedding_lookup") as scope:
-            heads_embeddings = self._add_embedding(head_inputs, scope)
-            scope.reuse_variables()
-            body_embeddings = self._add_embedding(body_inputs, scope)
+        try:
+            with tf.variable_scope("embedding_lookup", reuse=True):
+                embedding = tf.get_variable("embedding",
+                                            initializer=self.embedding,
+                                            dtype=tf.float32,
+                                            trainable=self.trainable)
+                heads_embeddings = tf.nn.embedding_lookup(embedding, head_inputs)
+                body_embeddings = tf.nn.embedding_lookup(embedding, body_inputs)
+
+        except ValueError:
+            with tf.variable_scope("embedding_lookup", reuse=False):
+                embedding = tf.get_variable("embedding",
+                                            initializer=self.embedding,
+                                            dtype=tf.float32,
+                                            trainable=self.trainable)
+
+                heads_embeddings = tf.nn.embedding_lookup(embedding, head_inputs)
+                body_embeddings = tf.nn.embedding_lookup(embedding, body_inputs)
 
         heads_embeddings = tf.concat([heads_embeddings, head_fasttext], 3)
         body_embeddings = tf.concat([body_embeddings, body_fasttext], 3)
