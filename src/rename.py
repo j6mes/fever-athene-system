@@ -11,6 +11,7 @@ def rename(checkpoint_dir, replace_from, replace_to, add_prefix, dry_run):
     with tf.Session() as sess:
         for var_name, _ in tf.contrib.framework.list_variables(checkpoint_dir):
             # Load the variable
+            print(var_name)
             var = tf.contrib.framework.load_variable(checkpoint_dir, var_name)
 
             # Set the new name

@@ -211,7 +211,8 @@ class ESIM:
 
         dense_output = self.mlp(v)
 
-        scores = tf.layers.dense(dense_output, 1)
+        with tf.variable_scope(self.namespace):
+            scores = tf.layers.dense(dense_output, 1)
 
         pos = tf.strided_slice(scores, [0], [self.batch_size], [2])
         neg = tf.strided_slice(scores, [1], [self.batch_size], [2])
