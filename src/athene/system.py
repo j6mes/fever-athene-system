@@ -93,6 +93,14 @@ def fever_app(caller):
     vocab, embeddings = load_whole_glove(Config.glove_path)
     vocab = vocab_map(vocab)
 
+    # RTE
+    logger.info("Setup RTE")
+    rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
+
+    logger.info("Restore RTE Model")
+    rte_predictor.restore_model(rte_predictor.ckpt_path)
+
+
     # Document Retrieval
     #logger.info("Setup document retrieval")
     #retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
@@ -122,10 +130,6 @@ def fever_app(caller):
         selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
-    # RTE
-    logger.info("Setup RTE")
-    rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
-
 
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
@@ -149,21 +153,12 @@ def fever_app(caller):
 
             selection_model = selections[i]
 
-            #logger.info("Restore sentence model {}".format(i))
-            #model_store_path = os.path.join(args.sentence_model, "model{}".format(i + 1))
-
-            #if not os.path.exists(model_store_path):
-            #    raise Exception("model must be trained before testing")
-
-            #selection_model.restore_model(os.path.join(model_store_path, "best_model.ckpt"))
-
-
             for test_index in indexes:
                 prediction = selection_model.predict(test_index)
                 predictions.append(prediction)
 
             all_predictions.append(predictions)
-            tf.reset_default_graph()
+
 
         ensembled_predicitons = scores_processing(all_predictions, args)
         processed_predictions, scores = post_processing(ensembled_predicitons, location_indexes)
