@@ -112,7 +112,7 @@ def fever_app(caller):
     selections = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.word_dict, dropout_rate=sargs.dropout_rate,
-                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh, namespace="model_{}".format(i+1)) for i in range(sargs.num_model)]
+                       num_units=sargs.num_lstm_units, share_rnn=False, activation=tf.nn.tanh, namespace="model_{}".format(i)) for i in range(sargs.num_model)]
 
     for i in range(sargs.num_model):
         logger.info("Restore Model {}".format(i))
