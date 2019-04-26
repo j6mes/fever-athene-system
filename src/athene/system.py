@@ -98,7 +98,7 @@ def fever_app(caller):
     #retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
     # Sentence Selection
-    logger.info("Setup sentence retrieval")
+    logger.info("Setup sentence loader")
     #words, iwords = get_iwords(args, retrieval)
 
     sentence_loader = SentenceDataLoader(fasttext_path=args.fasttext_path, db_filepath=args.db_path, h_max_length=args.c_max_length, s_max_length=args.s_max_length, reserve_embed=True)
@@ -107,6 +107,8 @@ def fever_app(caller):
     sargs = Config.sentence_retrieval_ensemble_param
     sargs.update(vars(args))
     sargs = Struct(**sargs)
+
+    logger.info("Sentence ESIM ensemble")
     selections = [SentenceESIM(h_max_length=sargs.c_max_length, s_max_length=sargs.s_max_length, learning_rate=sargs.learning_rate,
                        batch_size=sargs.batch_size, num_epoch=sargs.num_epoch, model_store_dir=sargs.sentence_model,
                        embedding=sentence_loader.embed, word_dict=sentence_loader.word_dict, dropout_rate=sargs.dropout_rate,

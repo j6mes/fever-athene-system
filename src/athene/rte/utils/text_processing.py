@@ -65,7 +65,7 @@ def load_whole_glove(glove_file):
         count = 0
         for line in _file:
             # TODO remove
-            
+
             count+=1
             if count > 1000:
                 break
