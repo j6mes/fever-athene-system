@@ -40,6 +40,7 @@ class ESIM:
         self.num_units = num_units
         self.namespace = namespace
         self._session = None
+        print("NAMESAPCE {}".format(namespace))
         # self.logger = LogHelper.get_logger(self.__class__.__name__)
 
     # use gru cell for rnn model
