@@ -67,6 +67,8 @@ RUN conda install tensorflow=1.9.0 tensorflow-gpu=1.9.0
 
 RUN python -c "import nltk; nltk.download('punkt')"
 
+RUN python tensorflow_rename_variables.py --checkpoint_dir=model/esim_0/sentence_retrieval_ensemble/model1 --add_prefix=model_0/
+
 ADD src src
 ENV PYTHONPATH /fever/src
 CMD bash

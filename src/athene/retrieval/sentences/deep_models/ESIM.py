@@ -192,9 +192,10 @@ class ESIM:
                 h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units)
                 s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units)
         else:
-            #with tf.variable_scope(self.namespace):
+
             h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
             s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
+
 
         claim_sum = tf.reduce_sum(h_infer, axis=1)
         claim_mask = tf.cast(tf.sequence_mask(X_h_length), tf.float32)
