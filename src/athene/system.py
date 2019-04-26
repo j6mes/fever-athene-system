@@ -88,13 +88,14 @@ def fever_app(caller):
     np.random.seed(args.random_seed)
     random.seed(args.random_seed)
 
+    # Load GLove
     logger.info("Load GloVe")
     vocab, embeddings = load_whole_glove(Config.glove_path)
     vocab = vocab_map(vocab)
 
     # Document Retrieval
-    logger.info("Setup document retrieval")
-    retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
+    #logger.info("Setup document retrieval")
+    #retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
 
     # Sentence Selection
     logger.info("Setup sentence retrieval")
