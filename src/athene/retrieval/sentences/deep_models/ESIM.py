@@ -150,7 +150,7 @@ class ESIM:
         else:
             self._training = None
 
-        with tf.variable_scope("embedding_lookup"):
+        with tf.variable_scope("embedding_lookup", reuse=True):
             embedding = tf.get_variable(initializer=self.embedding, dtype=tf.float32, trainable=self.trainable,
                                         name="word_embeddings")
             embed_h = tf.nn.embedding_lookup(embedding, ids=X_h)
