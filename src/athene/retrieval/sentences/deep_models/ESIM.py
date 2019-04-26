@@ -459,9 +459,12 @@ class ESIM:
         config.gpu_options.per_process_gpu_memory_fraction = float(os.getenv("TF_GPU_MEMORY_FRACTION","0.5"))
 
         self._session = tf.Session(config=config, graph=self._graph)
-        with tf.variable_scope("embedding_lookup", reuse=True):
-            v = tf.get_variable("embedding")
-            self._session.run(v.initializer)
+
+        with self._graph.as_default():
+            with tf.variable_scope("embedding_lookup", reuse=True):
+                v = tf.get_variable("embedding")
+                self._session.run(v.initializer)
+
         self._saver.restore(self._session, path)
         return self
 
