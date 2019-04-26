@@ -186,7 +186,7 @@ def fever_app(caller):
             'embedding': embeddings
         }
 
-        predictions = rte_predictor.predict(x_dict, True) #TODO try with False
+        predictions = rte_predictor.predict(x_dict, False) 
         return predictions
 
     def process_claims(claims):
