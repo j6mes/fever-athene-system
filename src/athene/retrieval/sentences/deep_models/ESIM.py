@@ -456,7 +456,7 @@ class ESIM:
             self._construct_graph()
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-        config.gpu_options.per_process_gpu_memory_fraction = float(os.getenv("TF_GPU_MEMORY_FRACTION","0.5"))
+        config.gpu_options.per_process_gpu_memory_fraction = float(os.getenv("TF_GPU_MEMORY_FRACTION","0.33"))
 
         self._session = tf.Session(config=config, graph=self._graph)
 

@@ -745,7 +745,7 @@ class ESIM(BaseEstimator, ClassifierMixin):
         self._graph = tf.Graph()
         with self._graph.as_default():
             self._construct_graph()
-            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=float(os.getenv("TF_GPU_MEMORY_FRACTION","0.5")))
+            gpu_options = tf.GPUOptions(allow_growth=True, per_process_gpu_memory_fraction=float(os.getenv("TF_GPU_MEMORY_FRACTION","0.33")))
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
             self._session = tf.Session(graph=self._graph,
