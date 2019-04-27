@@ -126,7 +126,6 @@ def fever_app(caller):
     logger.info("Load FastText")
     fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
-
     # RTE
     logger.info("Setup RTE")
     rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
