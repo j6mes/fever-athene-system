@@ -335,25 +335,6 @@ class ESIM(BaseEstimator, ClassifierMixin):
                 output_4_classifier_concat = tf.concat([output_mean, output_max], 1, name="output_4_classifier_concat")
         return output_4_classifier_concat
 
-    def _add_embedding(self, inputs, scope):
-
-        try:
-            with tf.variable_scope("embedding_lookup", reuse=True):
-                embedding = tf.get_variable("embedding",
-                                            initializer=self.embedding,
-                                            dtype=tf.float32,
-                                            trainable=self.trainable)
-                return tf.nn.embedding_lookup(embedding, inputs)
-
-        except ValueError:
-            with tf.variable_scope("embedding_lookup", reuse=False):
-                embedding = tf.get_variable("embedding",
-                                            initializer=self.embedding,
-                                            dtype=tf.float32,
-                                            trainable=self.trainable)
-                return tf.nn.embedding_lookup(embedding, inputs)
-
-
 
     def _ann(self, head_inputs, body_inputs, h_sizes, b_sizes, h_sent_sizes, b_sent_sizes, head_fasttext,
              body_fasttext):
@@ -769,15 +750,17 @@ class ESIM(BaseEstimator, ClassifierMixin):
         self._graph = tf.Graph()
         with self._graph.as_default():
             self._construct_graph()
-            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.4)
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-            self._session = tf.Session(graph=self._graph,
-                                       config=tf.ConfigProto(gpu_options=gpu_options)
-                                       # config=config
-                                       )
+
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.4)
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        self._session = tf.Session(graph=self._graph,
+                                   config=tf.ConfigProto(gpu_options=gpu_options)
+                                   # config=config
+                                   )
+        with self._graph.as_default():
             with self._session.as_default() as sess:
                 self._init.run()
                 sess.run(tf.tables_initializer())
-                self._saver.restore(sess, path)
+        self._saver.restore(sess, path)
         return self
