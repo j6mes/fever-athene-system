@@ -756,4 +756,5 @@ class ESIM(BaseEstimator, ClassifierMixin):
                 self._init.run()
                 sess.run(tf.tables_initializer())
                 self._saver.restore(sess, path)
+
         return self
