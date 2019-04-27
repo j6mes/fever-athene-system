@@ -93,6 +93,9 @@ def fever_app(caller):
     vocab, embeddings = load_whole_glove(Config.glove_path)
     vocab = vocab_map(vocab)
 
+    logger.info("Load FastText")
+    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
+
     # RTE
     logger.info("Setup RTE")
     rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
@@ -128,10 +131,6 @@ def fever_app(caller):
         if not os.path.exists(model_store_path):
             raise Exception("model must be trained before testing")
         selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
-
-
-    logger.info("Load FastText")
-    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
 
 
 
