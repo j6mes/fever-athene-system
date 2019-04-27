@@ -62,13 +62,7 @@ def load_whole_glove(glove_file):
     embed.append([1.0] * emb_dim)
 
     def _read_glove_file(_vocab, _embed, _file):
-        count = 0
         for line in _file:
-            # TODO remove
-
-            count+=1
-            if count > 1000:
-                break
             items = line.replace('\r', '').replace('\n', '').split(' ')
             if len(items) < 10:
                 logger.debug("exceptional line: {}".format(line))
