@@ -346,7 +346,7 @@ class LSTM(BaseEstimator, ClassifierMixin):
         checks_without_progress = 0
         best_acc = np.inf
         best_parameters = None
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
         self._session = tf.Session(graph=self._graph, config=tf.ConfigProto(gpu_options=gpu_options))
 
         if h_np.shape[1] < self.h_max_length or b_np.shape[1] < self.b_max_length:
