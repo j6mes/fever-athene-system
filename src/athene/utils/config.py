@@ -95,7 +95,7 @@ class Config:
     # vocab_file = path.join(BASE_DIR, 'vocab.p')
     name = 'claim_verification_esim'
     sentence_retrieval_ensemble_param = {
-        'num_model': 5,
+        'num_model': 2,
         'random_seed': 1234,
         'tf_random_state': [88, 12345, 4444, 8888, 9999],
         'num_negatives': 5,
