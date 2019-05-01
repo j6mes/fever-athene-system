@@ -382,7 +382,7 @@ class SentenceDataLoader(object):
                     elif word.lower()=="-rrb-":
                         word_indexes.append(word_dict[")"])
                     else:
-                        print("OOV: {}".format(word.lower()))
+                        #print("OOV: {}".format(word.lower()))
                         word_indexes.append(word_dict["<unk>"])
         return word_indexes
 
