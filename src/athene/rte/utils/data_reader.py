@@ -205,8 +205,10 @@ def read_data_set_from_lines(lines: List, db: Union[str, FeverDocDB], predicted:
                         # page_title + " # " + clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
                         clean_text(evidence_num_to_text(db, page, line_num, is_snopes)))
             evidences_texts = list(evidences_texts)
+
         if len(evidences_texts) == 0:
-            continue
+            evidence_texts = [""]
+
         if num_sentences is not None:
             if len(evidences_texts) > num_sentences:
                 evidences_texts = evidences_texts[:num_sentences]
