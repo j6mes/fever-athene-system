@@ -190,9 +190,16 @@ def fever_app(caller):
         return predictions
 
     def process_claims(claims):
+        print("CLAIMS LEN {}".format(len(claims)))
         claims = get_docs(claims)
+
+        print("CLAIMS LEN {}".format(len(claims)))
         claims = get_sents(claims)
+
+        print("CLAIMS LEN {}".format(len(claims)))
         predictions = run_rte(claims)
+
+        print("PREDICTIONS LEN {}".format(len(predictions)))
 
         ret = []
         for idx in range(len(claims)):
