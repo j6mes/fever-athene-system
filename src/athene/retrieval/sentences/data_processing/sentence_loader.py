@@ -389,7 +389,7 @@ class SentenceDataLoader(object):
     def train_data_indexes(self, X, word_dict):
 
         X_indexes = []
-        print("start index words into intergers")
+        print("start index words into integers")
         for claim, pos, neg in X:
             claim_indexes = self.sent_2_index(claim, word_dict, self.h_max_length)
             pos_indexes = self.sent_2_index(pos, word_dict, self.s_max_length)

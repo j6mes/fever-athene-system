@@ -416,10 +416,13 @@ def embed_claims(claims: List, db: Union[str, FeverDocDB],
     if vocab_dict is None or glove_embeddings is None:
         vocab, glove_embeddings = load_whole_glove(glove_path)
         vocab_dict = vocab_map(vocab)
+    print(len(claims))
     logger = LogHelper.get_logger("embed_data_set_given_vocab")
     datas, labels = read_data_set_from_lines(claims, db, predicted, is_snopes=is_snopes)
+    print(len(datas["h"]),len(datas["b"]))
     heads_ft_embeddings, fasttext_model = single_sentence_set_2_fasttext_embedded(datas['h'], fasttext_model)
     logger.debug("Finished sentence to FastText embeddings for claims")
+    print(len(heads_ft_embeddings))
     heads_ids = single_sentence_set_2_ids_given_vocab(datas['h'], vocab_dict)
     logger.debug("Finished sentence to IDs for claims")
     bodies_ft_embeddings, fasttext_model = multi_sentence_set_2_fasttext_embedded(datas['b'], fasttext_model)
