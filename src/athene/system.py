@@ -93,17 +93,6 @@ def fever_app(caller):
     vocab, embeddings = load_whole_glove(Config.glove_path)
     vocab = vocab_map(vocab)
 
-    logger.info("Load FastText")
-    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
-
-    # RTE
-    logger.info("Setup RTE")
-    rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
-    rte_predictor.embedding = embeddings
-
-    logger.info("Restore RTE Model")
-    rte_predictor.restore_model(rte_predictor.ckpt_path)
-
     # Document Retrieval
     logger.info("Setup document retrieval")
     retrieval = Doc_Retrieval(database_path=args.db_path, add_claim=args.add_claim, k_wiki_results=k_wiki)
@@ -133,6 +122,17 @@ def fever_app(caller):
         selections[i].restore_model(os.path.join(model_store_path, "best_model.ckpt"))
 
 
+
+    logger.info("Load FastText")
+    fasttext_model = FastText.load_fasttext_format(Config.fasttext_path)
+
+    # RTE
+    logger.info("Setup RTE")
+    rte_predictor = get_estimator(Config.estimator_name, Config.ckpt_folder)
+    rte_predictor.embedding = embeddings
+
+    logger.info("Restore RTE Model")
+    rte_predictor.restore_model(rte_predictor.ckpt_path)
 
     def get_docs_line(line):
         nps, wiki_results, pages = retrieval.exact_match(line)

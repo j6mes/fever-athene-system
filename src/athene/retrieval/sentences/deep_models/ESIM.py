@@ -126,8 +126,8 @@ class ESIM:
         return soft_max
 
     def mlp(self, outputs):
-        with tf.variable_scope(self.namespace):
-            outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer, name="dense")
+        #with tf.variable_scope(self.namespace):
+        outputs = tf.layers.dense(outputs, 256, activation=tf.nn.tanh, kernel_initializer=self.initializer, name="dense")
 
         if self.dropout_rate:
             outputs = tf.layers.dropout(outputs, rate=self.dropout_rate, training=self._training)
@@ -175,9 +175,9 @@ class ESIM:
                 h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units)
                 s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units)
         else:
-            with tf.variable_scope(self.namespace):
-                h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
-                s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
+            #with tf.variable_scope(self.namespace):
+            h_encodings = self._bidirectional_rnn(embed_h, X_h_length, self.num_units, scope="h_encode_rnn")
+            s_encodings = self._bidirectional_rnn(embed_s, X_s_length, self.num_units, scope="s_endode_rnn")
 
         sent_attends, claim_attends = self._inter_atten(h_encodings, s_encodings, X_h_length, X_s_length)
 
@@ -195,9 +195,9 @@ class ESIM:
                 h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units)
                 s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units)
         else:
-            with tf.variable_scope(self.namespace):
-                h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
-                s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
+            #with tf.variable_scope(self.namespace):
+            h_infer = self._bidirectional_rnn(m_claim, X_h_length, self.num_units, scope="h_infer_rnn")
+            s_infer = self._bidirectional_rnn(m_sent, X_s_length, self.num_units, scope="s_infer_rnn")
 
         claim_sum = tf.reduce_sum(h_infer, axis=1)
         claim_mask = tf.cast(tf.sequence_mask(X_h_length), tf.float32)
@@ -213,8 +213,8 @@ class ESIM:
 
         dense_output = self.mlp(v)
 
-        with tf.variable_scope(self.namespace):
-            scores = tf.layers.dense(dense_output, 1, name="dense_1")
+        #with tf.variable_scope(self.namespace):
+        scores = tf.layers.dense(dense_output, 1, name="dense_1")
 
         pos = tf.strided_slice(scores, [0], [self.batch_size], [2])
         neg = tf.strided_slice(scores, [1], [self.batch_size], [2])

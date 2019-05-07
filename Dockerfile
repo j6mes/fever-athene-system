@@ -74,5 +74,5 @@ ENV PYTHONUNBUFFERED 1
 CMD bash
 #CMD python -m athene.system --db-path /local/fever-common/data/fever/fever.db --words-cache model/sentence --sentence-model model/esim_0/sentence_retrieval_ensemble
 #CMD python src/rename.py --checkpoint_dir=model/esim_0/sentence_retrieval_ensemble/model1 --add_prefix=model_0/
-#CMD ["waitress-serve", "--host=0.0.0.0","--port=5000", "--call", "athene.system:web"]
-CMD ["bash", "./server.sh"]
+CMD ["waitress-serve", "--host=0.0.0.0","--port=5000", "--call", "athene.system:web"]
+#CMD ["bash", "./server.sh"]
