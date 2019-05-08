@@ -69,6 +69,7 @@ RUN python -c "import nltk; nltk.download('punkt')"
 
 ADD src src
 ADD server.sh .
+ADD predict.sh .
 ENV PYTHONPATH /fever/src
 ENV PYTHONUNBUFFERED 1
 CMD bash
